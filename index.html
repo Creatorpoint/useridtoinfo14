@@ -7,8 +7,8 @@
 <style>
 body{
   margin:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#1d4350,#a43931);
+  font-family:monospace;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -16,18 +16,18 @@ body{
 }
 
 .card{
-  background:#0f0f0f;
+  background:#111;
   padding:30px;
   border-radius:14px;
   width:95%;
-  max-width:420px;
+  max-width:500px;
   box-shadow:0 15px 40px rgba(0,0,0,0.6);
   color:white;
 }
 
 h2{
   text-align:center;
-  margin-bottom:25px;
+  margin-bottom:20px;
 }
 
 input{
@@ -44,25 +44,25 @@ button{
   padding:14px;
   border:none;
   border-radius:8px;
-  background:#0072ff;
-  color:white;
-  font-size:16px;
+  background:#00c6ff;
+  color:black;
   font-weight:bold;
   cursor:pointer;
+  margin-bottom:10px;
 }
 
 button:hover{
-  background:#00c6ff;
+  background:#0072ff;
+  color:white;
 }
 
-.result{
-  margin-top:20px;
+pre{
   background:#1c1c1c;
   padding:15px;
   border-radius:8px;
-  font-size:14px;
-  min-height:60px;
-  word-break:break-word;
+  max-height:250px;
+  overflow:auto;
+  font-size:13px;
 }
 </style>
 </head>
@@ -70,10 +70,14 @@ button:hover{
 <body>
 
 <div class="card">
-  <h2>Telegram User Lookup</h2>
-  <input type="text" id="userid" placeholder="Enter Telegram User ID">
+  <h2>Telegram User Lookup API</h2>
+
+  <input type="text" id="userid" placeholder="Enter User ID (Example: 5889016144)">
+  
   <button onclick="searchUser()">Search</button>
-  <div class="result" id="result">Result will appear here</div>
+  <button onclick="copyResult()">Copy JSON</button>
+
+  <pre id="result">Result will appear here in JSON format...</pre>
 </div>
 
 <script>
@@ -86,25 +90,23 @@ async function searchUser(){
     return;
   }
 
-  resultBox.innerHTML = "Searching...";
+  resultBox.textContent = "Loading...";
 
   try{
     const response = await fetch(`/api/search?userid=${userid}`);
     const data = await response.json();
 
-    if(response.ok){
-      resultBox.innerHTML = `
-        <b>Name:</b> ${data.name || "N/A"} <br>
-        <b>Username:</b> ${data.username || "N/A"} <br>
-        <b>Phone:</b> ${data.phone || "Not Found"}
-      `;
-    } else {
-      resultBox.innerHTML = "User Not Found";
-    }
+    resultBox.textContent = JSON.stringify(data, null, 2);
 
   }catch(error){
-    resultBox.innerHTML = "API Error";
+    resultBox.textContent = "API Error";
   }
+}
+
+function copyResult(){
+  const text = document.getElementById("result").textContent;
+  navigator.clipboard.writeText(text);
+  alert("JSON Copied!");
 }
 </script>
 
