@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Prime Earn Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+margin:0;
+font-family:Segoe UI;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:#fff;
+}
+.container{
+max-width:600px;
+margin:60px auto;
+padding:30px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(20px);
+border-radius:20px;
+box-shadow:0 0 40px rgba(0,255,255,0.3);
+}
+input{
+width:100%;
+padding:14px;
+margin:10px 0;
+border-radius:10px;
+border:none;
+background:#111;
+color:#0ff;
+}
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:#00f5ff;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
+}
+button:hover{
+box-shadow:0 0 20px #00f5ff;
+}
+.hidden{display:none;}
+.card{
+background:#111;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🔥 Prime Pro</h1>
+
+<div id="authBox">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" class="hidden">
+
+<h2>🔎 Telegram Search</h2>
+<input type="text" id="userid" placeholder="Enter Telegram User ID">
+<button onclick="searchUser()">Search</button>
+<div id="result"></div>
+
+<hr>
+
+<h2>💎 Premium ₹99 / 30 Days</h2>
+<img src="https://files.catbox.moe/3vpu11.jpg" width="200">
+<input type="text" id="utr" placeholder="Enter UTR Number">
+<button onclick="submitPayment()">Submit Payment</button>
+
+<button onclick="logout()">Logout</button>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJIU56dxgxS2cIh99zSvp_FAn9hrSSl0g",
+  authDomain: "prime-earn-49202.firebaseapp.com",
+  databaseURL: "https://prime-earn-49202-default-rtdb.firebaseio.com",
+  projectId: "prime-earn-49202",
+  storageBucket: "prime-earn-49202.firebasestorage.app",
+  messagingSenderId: "533446392320",
+  appId: "1:533446392320:web:5cdda6a2fb9a57870eb6e5"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser=null;
+
+onAuthStateChanged(auth,(user)=>{
+if(user){
+currentUser=user;
+authBox.classList.add("hidden");
+dashboard.classList.remove("hidden");
+}else{
+authBox.classList.remove("hidden");
+dashboard.classList.add("hidden");
+}
+});
+
+window.signup=()=>{
+createUserWithEmailAndPassword(auth,email.value,password.value)
+.then(res=>{
+set(ref(db,"users/"+res.user.uid),{
+email:res.user.email,
+subscription:"none",
+expiry:0,
+banned:false
+});
+});
+};
+
+window.login=()=>{
+signInWithEmailAndPassword(auth,email.value,password.value);
+};
+
+window.logout=()=>{signOut(auth);};
+
+window.searchUser=async()=>{
+onValue(ref(db,"users/"+currentUser.uid),(snap)=>{
+let data=snap.val();
+if(data.banned){alert("Account Banned"); return;}
+if(data.subscription!="active" || Date.now()>data.expiry){
+alert("Premium Required");
+return;
+}
+});
+
+let id=userid.value;
+let res=await fetch("/api/search?userid="+id);
+let data=await res.json();
+
+result.innerHTML=`
+<div class="card">
+<p>Name: ${data.name||"N/A"}</p>
+<p>Username: ${data.username||"N/A"}</p>
+<p>ID: ${data.id||"N/A"}</p>
+</div>`;
+};
+
+window.submitPayment=()=>{
+push(ref(db,"payments"),{
+uid:currentUser.uid,
+email:currentUser.email,
+utr:utr.value,
+amount:99,
+time:Date.now()
+});
+alert("Payment Submitted for Approval");
+};
+
+</script>
+</body>
+</html>
