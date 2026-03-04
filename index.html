@@ -1,172 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Prime Earn Pro</title>
+<title>Telegram Lookup</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
-margin:0;
-font-family:Segoe UI;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#1f4037,#99f2c8);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
+
 .container{
-max-width:600px;
-margin:60px auto;
-padding:30px;
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(20px);
-border-radius:20px;
-box-shadow:0 0 40px rgba(0,255,255,0.3);
+  background:#111;
+  padding:30px;
+  border-radius:12px;
+  width:95%;
+  max-width:400px;
+  box-shadow:0 0 20px rgba(0,0,0,0.6);
+  color:white;
 }
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
 input{
-width:100%;
-padding:14px;
-margin:10px 0;
-border-radius:10px;
-border:none;
-background:#111;
-color:#0ff;
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:15px;
+  font-size:16px;
 }
+
 button{
-width:100%;
-padding:14px;
-border:none;
-border-radius:10px;
-background:#00f5ff;
-font-weight:bold;
-cursor:pointer;
-margin-top:10px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#00c6ff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
 }
+
 button:hover{
-box-shadow:0 0 20px #00f5ff;
+  background:#0072ff;
 }
-.hidden{display:none;}
-.card{
-background:#111;
-padding:15px;
-border-radius:10px;
-margin-top:15px;
+
+.result{
+  margin-top:20px;
+  background:#1c1c1c;
+  padding:15px;
+  border-radius:8px;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
+  <h2>Telegram User Lookup</h2>
 
-<h1>🔥 Prime Pro</h1>
+  <input type="text" id="userid" placeholder="Enter Telegram User ID">
+  <button onclick="searchUser()">Search</button>
 
-<div id="authBox">
-<input type="email" id="email" placeholder="Email">
-<input type="password" id="password" placeholder="Password">
-<button onclick="signup()">Signup</button>
-<button onclick="login()">Login</button>
+  <div class="result" id="result">
+    Result will appear here
+  </div>
 </div>
 
-<div id="dashboard" class="hidden">
+<script>
+async function searchUser(){
+  const userid = document.getElementById("userid").value;
+  const resultBox = document.getElementById("result");
 
-<h2>🔎 Telegram Search</h2>
-<input type="text" id="userid" placeholder="Enter Telegram User ID">
-<button onclick="searchUser()">Search</button>
-<div id="result"></div>
+  if(!userid){
+    alert("Enter User ID");
+    return;
+  }
 
-<hr>
+  resultBox.innerHTML = "Searching...";
 
-<h2>💎 Premium ₹99 / 30 Days</h2>
-<img src="https://files.catbox.moe/3vpu11.jpg" width="200">
-<input type="text" id="utr" placeholder="Enter UTR Number">
-<button onclick="submitPayment()">Submit Payment</button>
+  try{
+    const response = await fetch(`https://tg-2-num-api-org.vercel.app/api/search?userid=${userid}`);
+    const data = await response.json();
 
-<button onclick="logout()">Logout</button>
+    if(data.success){
+      resultBox.innerHTML = `
+        <p><b>Name:</b> ${data.name || "N/A"}</p>
+        <p><b>Username:</b> ${data.username || "N/A"}</p>
+        <p><b>Phone:</b> ${data.phone || "Not Found"}</p>
+      `;
+    } else {
+      resultBox.innerHTML = "User Not Found";
+    }
 
-</div>
-
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCJIU56dxgxS2cIh99zSvp_FAn9hrSSl0g",
-  authDomain: "prime-earn-49202.firebaseapp.com",
-  databaseURL: "https://prime-earn-49202-default-rtdb.firebaseio.com",
-  projectId: "prime-earn-49202",
-  storageBucket: "prime-earn-49202.firebasestorage.app",
-  messagingSenderId: "533446392320",
-  appId: "1:533446392320:web:5cdda6a2fb9a57870eb6e5"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-
-let currentUser=null;
-
-onAuthStateChanged(auth,(user)=>{
-if(user){
-currentUser=user;
-authBox.classList.add("hidden");
-dashboard.classList.remove("hidden");
-}else{
-authBox.classList.remove("hidden");
-dashboard.classList.add("hidden");
+  }catch(error){
+    resultBox.innerHTML = "API Error";
+  }
 }
-});
-
-window.signup=()=>{
-createUserWithEmailAndPassword(auth,email.value,password.value)
-.then(res=>{
-set(ref(db,"users/"+res.user.uid),{
-email:res.user.email,
-subscription:"none",
-expiry:0,
-banned:false
-});
-});
-};
-
-window.login=()=>{
-signInWithEmailAndPassword(auth,email.value,password.value);
-};
-
-window.logout=()=>{signOut(auth);};
-
-window.searchUser=async()=>{
-onValue(ref(db,"users/"+currentUser.uid),(snap)=>{
-let data=snap.val();
-if(data.banned){alert("Account Banned"); return;}
-if(data.subscription!="active" || Date.now()>data.expiry){
-alert("Premium Required");
-return;
-}
-});
-
-let id=userid.value;
-let res=await fetch("/api/search?userid="+id);
-let data=await res.json();
-
-result.innerHTML=`
-<div class="card">
-<p>Name: ${data.name||"N/A"}</p>
-<p>Username: ${data.username||"N/A"}</p>
-<p>ID: ${data.id||"N/A"}</p>
-</div>`;
-};
-
-window.submitPayment=()=>{
-push(ref(db,"payments"),{
-uid:currentUser.uid,
-email:currentUser.email,
-utr:utr.value,
-amount:99,
-time:Date.now()
-});
-alert("Payment Submitted for Approval");
-};
-
 </script>
+
 </body>
 </html>
