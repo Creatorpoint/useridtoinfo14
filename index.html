@@ -1,113 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telegram User Lookup</title>
-
-<style>
-body{
-  margin:0;
-  font-family:monospace;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.card{
-  background:#111;
-  padding:30px;
-  border-radius:14px;
-  width:95%;
-  max-width:500px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.6);
-  color:white;
-}
-
-h2{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-input{
-  width:100%;
-  padding:14px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:15px;
-  font-size:16px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:8px;
-  background:#00c6ff;
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
-  margin-bottom:10px;
-}
-
-button:hover{
-  background:#0072ff;
-  color:white;
-}
-
-pre{
-  background:#1c1c1c;
-  padding:15px;
-  border-radius:8px;
-  max-height:250px;
-  overflow:auto;
-  font-size:13px;
-}
-</style>
+<title>Prime Prem</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="card">
-  <h2>Telegram User Lookup API</h2>
 
-  <input type="text" id="userid" placeholder="Enter User ID (Example: 5889016144)">
-  
-  <button onclick="searchUser()">Search</button>
-  <button onclick="copyResult()">Copy JSON</button>
+<h2>Prime Prem</h2>
 
-  <pre id="result">Result will appear here in JSON format...</pre>
+<p id="userEmail"></p>
+<p>Daily Free: <span id="daily"></span></p>
+<p>Credits: <span id="credits"></span></p>
+
+<button id="useBtn">Use Service</button>
+
+<div id="broadcasts"></div>
+
 </div>
 
-<script>
-async function searchUser(){
-  const userid = document.getElementById("userid").value.trim();
-  const resultBox = document.getElementById("result");
+<script type="module">
 
-  if(!userid){
-    alert("Enter User ID");
-    return;
-  }
+import { auth, db, provider } from './firebase.js';
+import { signInWithPopup, onAuthStateChanged } from 
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  resultBox.textContent = "Loading...";
+import { doc, getDoc, setDoc, updateDoc, 
+collection, onSnapshot } from 
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  try{
-    const response = await fetch(`/api/search?userid=${userid}`);
-    const data = await response.json();
+onAuthStateChanged(auth, async(user)=>{
 
-    resultBox.textContent = JSON.stringify(data, null, 2);
+ if(!user){
+   await signInWithPopup(auth, provider);
+ }
 
-  }catch(error){
-    resultBox.textContent = "API Error";
-  }
+ const userRef = doc(db,"users",user.uid);
+ const snap = await getDoc(userRef);
+
+ if(!snap.exists()){
+   await setDoc(userRef,{
+     email:user.email,
+     dailyFree:2,
+     credits:0,
+     blocked:false,
+     online:true,
+     lastReset:Date.now()
+   });
+ }
+
+ loadUser(user.uid);
+});
+
+async function loadUser(uid){
+ const snap = await getDoc(doc(db,"users",uid));
+ const data = snap.data();
+
+ if(data.blocked){
+   alert("You are blocked by admin.");
+   return;
+ }
+
+ document.getElementById("daily").innerText = data.dailyFree;
+ document.getElementById("credits").innerText = data.credits;
 }
 
-function copyResult(){
-  const text = document.getElementById("result").textContent;
-  navigator.clipboard.writeText(text);
-  alert("JSON Copied!");
-}
 </script>
 
 </body>
