@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Telegram Lookup</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telegram User Lookup</title>
 
 <style>
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(135deg,#1f4037,#99f2c8);
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#1d4350,#a43931);
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
 }
 
-.container{
-  background:#111;
+.card{
+  background:#0f0f0f;
   padding:30px;
-  border-radius:12px;
+  border-radius:14px;
   width:95%;
-  max-width:400px;
-  box-shadow:0 0 20px rgba(0,0,0,0.6);
+  max-width:420px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.6);
   color:white;
 }
 
 h2{
   text-align:center;
-  margin-bottom:20px;
+  margin-bottom:25px;
 }
 
 input{
   width:100%;
-  padding:12px;
+  padding:14px;
   border-radius:8px;
   border:none;
   margin-bottom:15px;
@@ -41,17 +41,18 @@ input{
 
 button{
   width:100%;
-  padding:12px;
+  padding:14px;
   border:none;
   border-radius:8px;
-  background:#00c6ff;
+  background:#0072ff;
+  color:white;
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
 }
 
 button:hover{
-  background:#0072ff;
+  background:#00c6ff;
 }
 
 .result{
@@ -59,25 +60,25 @@ button:hover{
   background:#1c1c1c;
   padding:15px;
   border-radius:8px;
+  font-size:14px;
+  min-height:60px;
+  word-break:break-word;
 }
 </style>
 </head>
+
 <body>
 
-<div class="container">
+<div class="card">
   <h2>Telegram User Lookup</h2>
-
   <input type="text" id="userid" placeholder="Enter Telegram User ID">
   <button onclick="searchUser()">Search</button>
-
-  <div class="result" id="result">
-    Result will appear here
-  </div>
+  <div class="result" id="result">Result will appear here</div>
 </div>
 
 <script>
 async function searchUser(){
-  const userid = document.getElementById("userid").value;
+  const userid = document.getElementById("userid").value.trim();
   const resultBox = document.getElementById("result");
 
   if(!userid){
@@ -88,14 +89,14 @@ async function searchUser(){
   resultBox.innerHTML = "Searching...";
 
   try{
-    const response = await fetch(`https://tg-2-num-api-org.vercel.app/api/search?userid=${userid}`);
+    const response = await fetch(`/api/search?userid=${userid}`);
     const data = await response.json();
 
-    if(data.success){
+    if(response.ok){
       resultBox.innerHTML = `
-        <p><b>Name:</b> ${data.name || "N/A"}</p>
-        <p><b>Username:</b> ${data.username || "N/A"}</p>
-        <p><b>Phone:</b> ${data.phone || "Not Found"}</p>
+        <b>Name:</b> ${data.name || "N/A"} <br>
+        <b>Username:</b> ${data.username || "N/A"} <br>
+        <b>Phone:</b> ${data.phone || "Not Found"}
       `;
     } else {
       resultBox.innerHTML = "User Not Found";
